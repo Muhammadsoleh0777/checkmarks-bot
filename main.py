@@ -103,6 +103,31 @@ async def start_cmd(message: types.Message, state: FSMContext):
             reply_markup=main_keyboard()
         )
 
+# --- МОИ ДАННЫЕ ---
+
+@dp.message(F.text == "👤 Мои данные")
+async def show_my_data(message: types.Message):
+    user_id = message.from_user.id
+    
+    # Проверяем, есть ли пользователь в базе и заполнены ли его данные
+    if user_id not in users_db or not users_db[user_id]:
+        await message.answer(
+            "⚠️ У тебя еще не сохранены данные!\n"
+            "Давай познакомимся, введи команду /start",
+            reply_markup=main_keyboard()
+        )
+        return
+
+    # Если данные есть — показываем их
+    user_data = users_db[user_id]
+    await message.answer(
+        f"👤 <b>Твои данные:</b>\n"
+        f"• Имя: {user_data.get('name', 'Не указано')}\n"
+        f"• Класс: {user_data.get('class', 'Не указан')}",
+        parse_mode="HTML",
+        reply_markup=main_keyboard()
+    )
+
 # --- РЕГИСТРАЦИЯ ---
 
 @dp.message(Form.waiting_for_name)
@@ -164,7 +189,7 @@ async def process_schedule_day(message: types.Message, state: FSMContext):
         f"Напиши предметы на <b>{day_input}</b> через запятую (старое расписание на этот день обновится):\n"
         "(например: Алгебра, Геометрия, Русский яз, Литература)",
         parse_mode="HTML",
-        reply_markup=back_keyboard() # Кнопка назад вернет к выбору дня (или можно переписать ввод)
+        reply_markup=back_keyboard()
     )
     await state.set_state(Form.schedule_lessons)
 
@@ -334,4 +359,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
